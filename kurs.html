@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurs</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        form { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; overflow: hidden; }
+        fieldset { border: none; padding: 20px; }
+        legend { font-size: 18px; font-weight: bold; color: white; padding: 10px 0; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; }
+        th { background: rgba(255,255,255,0.2); color: white; font-weight: bold; border-bottom: 2px solid rgba(255,255,255,0.3); }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        input:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 4px rgba(102,126,234,0.5); }
+        #hasil { background: #f9f9f9; font-weight: bold; color: #333; }
+        .buttons { margin-top: 15px; display: flex; gap: 10px; justify-content: center; }
+        button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-hitung { background: #4CAF50; color: white; }
+        .btn-hitung:hover { background: #45a049; }
+        .btn-reset { background: #f44336; color: white; }
+        .btn-reset:hover { background: #da190b; }
+        .info { margin-top: 10px; padding: 10px; background: #e3f2fd; border-left: 4px solid #2196F3; color: #0d47a1; font-size: 12px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form novalidate>
+        <fieldset>
+            <legend>Kurs Rupiah - Mata Uang Asing</legend>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Masukkan Nilai</th>
+                        <th>Valas</th>
+                        <th>Nilai Rupiah</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="number" id="uang" placeholder="0" min="0" step="0.01"></td>
+                        <td>
+                            <select id="valas">
+                                <option value="usd">USD - Dollar US</option>
+                                <option value="sgd">SGD - Dollar Singapore</option>
+                                <option value="myr">MYR - Ringgit Malaysia</option>
+                                <option value="jpy">JPY - Yen Jepang</option>
+                                <option value="eur">EUR - Euro</option>
+                                <option value="sar">SAR - Riyal Arab Saudi</option>
+                            </select>
+                        </td>
+                        <td><input type="text" id="hasil" readonly placeholder="Hasil konversi"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="buttons">
+                <button type="button" class="btn-hitung" id="btnHitung">Hitung</button>
+                <button type="button" class="btn-reset" id="btnReset">Reset</button>
+            </div>
+            <div class="info" id="info"></div>
+        </fieldset>
+    </form>
+    </div>
+
+    <script>
+        // Kurs terbaru
+        const kurs = {
+            usd: 9915,   // Dollar US
+            sgd: 13472,  // Dollar Singapore
+            myr: 874,    // Ringgit Malaysia
+            jpy: 120,    // Yen Jepang
+            eur: 15888,  // Euro
+            sar: 3592    // Riyal Arab Saudi
+        };
+
+        const uangEl = document.getElementById("uang");
+        const valasEl = document.getElementById("valas");
+        const hasilEl = document.getElementById("hasil");
+        const infoEl = document.getElementById("info");
+        const btnHitung = document.getElementById("btnHitung");
+        const btnReset = document.getElementById("btnReset");
+
+        function hitung() {
+            let nilai = parseFloat(uangEl.value);
+            
+            if (isNaN(nilai) || nilai < 0) {
+                hasilEl.value = "";
+                infoEl.textContent = "Masukkan nilai yang valid (positif).";
+                infoEl.style.display = nilai === "" ? "none" : "block";
+                return;
+            }
+            
+            if (nilai === 0 || uangEl.value === "") {
+                hasilEl.value = "";
+                infoEl.style.display = "none";
+                return;
+            }
+
+            let jenis = valasEl.value;
+            let hasil = nilai * kurs[jenis];
+            
+            hasilEl.value = hasil.toLocaleString("id-ID", { maximumFractionDigits: 2 });
+            infoEl.textContent = `Konversi: ${nilai} ${jenis.toUpperCase()} = Rp ${hasil.toLocaleString("id-ID")}`;
+            infoEl.style.display = "block";
+        }
+
+        function reset() {
+            uangEl.value = "";
+            valasEl.value = "usd";
+            hasilEl.value = "";
+            infoEl.style.display = "none";
+            uangEl.focus();
+        }
+
+        valasEl.addEventListener("change", hitung);
+        uangEl.addEventListener("input", hitung);
+        btnHitung.addEventListener("click", hitung);
+        btnReset.addEventListener("click", reset);
+    </script>
+</body>
+</html>

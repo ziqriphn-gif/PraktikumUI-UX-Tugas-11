@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chatbox Sederhana</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #0f172a;
+      --accent: #00f5d4;
+      --accent-2: #7c3aed;
+      --muted: #94a3b8;
+      --bubble-user: rgba(255,255,255,0.03);
+      --bubble-me-from: #0ea5a3;
+      --bubble-me-to: #16a085;
+      --glass-border: rgba(255,255,255,0.04);
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: linear-gradient(180deg, #071129, #0f172a);
+      color: #e6eef8;
+    }
+
+    .chat-wrapper {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 380px;
+      max-width: 92vw;
+      z-index: 1000;
+    }
+
+    .chat-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      cursor: pointer;
+    }
+
+    .chat-title {
+      font-weight: 700;
+      color: #041022;
+    }
+
+    .chat-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ai-toggle{display:flex;align-items:center;gap:8px;color:#041022;font-weight:700}
+    .ai-toggle input{transform:scale(1.0)}
+
+    .chat-btn {
+      background: rgba(255,255,255,0.9);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-weight: 700;
+      color: #041022;
+      border: none;
+      cursor: pointer;
+    }
+
+    .chat-body {
+      height: 320px;
+      max-height: 60vh;
+      overflow: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+    }
+
+    .msg {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      color: #e6eef8;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .msg.me {
+      align-self: flex-end;
+      background: linear-gradient(90deg, var(--bubble-me-from), var(--bubble-me-to));
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.user {
+      align-self: flex-start;
+      background: var(--bubble-user);
+      border-bottom-left-radius: 4px;
+      color: var(--muted);
+    }
+
+    .msg small {
+      display: block;
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 6px;
+      color: inherit;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid rgba(255,255,255,0.03);
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.04);
+      background: transparent;
+      color: inherit;
+    }
+
+    .chat-input button {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 0;
+      background: var(--accent);
+      color: #041022;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .minimized .chat-body,
+    .minimized .chat-input {
+      display: none;
+    }
+
+    .minimized {
+      width: 260px;
+    }
+
+    @media (max-width: 420px) {
+      .chat-wrapper {
+        width: 92vw;
+        left: 50%;
+        top: auto;
+        bottom: 6vh;
+        transform: translateX(-50%);
+      }
+
+      .chat-body {
+        height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="chat-wrapper">
+    <div class="chat-card" id="chatCard">
+      <div class="chat-header" id="chatHeader">
+        <div class="chat-title">Chatbox</div>
+        <div class="chat-controls">
+          <button id="minBtn" class="chat-btn">–</button>
+          <button id="closeBtn" class="chat-btn">×</button>
+        </div>
+      </div>
+
+      <div class="chat-body" id="chatBody">
+      </div>
+
+      <div class="chat-input">
+        <input id="chatInput" type="text" placeholder="Tulis pesan... (Enter untuk kirim)" />
+        <button id="sendBtn">Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const chatBody = document.getElementById('chatBody');
+      const chatInput = document.getElementById('chatInput');
+      const sendBtn = document.getElementById('sendBtn');
+      const minBtn = document.getElementById('minBtn');
+      const closeBtn = document.getElementById('closeBtn');
+      const chatCard = document.getElementById('chatCard');
+
+      function appendMessage(text, who){
+        const el = document.createElement('div');
+        el.className = 'msg ' + (who === 'me' ? 'me' : 'user');
+        el.innerHTML = '<div>' + escapeHtml(text) + '</div>' + '<small>' + nowTime() + '</small>';
+        chatBody.appendChild(el);
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }
+
+      function nowTime(){
+        const d = new Date();
+        return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+      }
+
+      function escapeHtml(unsafe) {
+        return unsafe.replace(/[&<>"] /g, function(m) {
+          if (m === ' ') return ' ';
+          return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]||m);
+        });
+      }
+
+      sendBtn.addEventListener('click', () => {
+        const v = chatInput.value.trim();
+        if (!v) return;
+        appendMessage(v, 'me');
+        chatInput.value = '';
+
+        const aiEnabled = document.getElementById('aiMode') ? document.getElementById('aiMode').checked : true;
+        if (aiEnabled) {
+          showTyping();
+          const delay = Math.min(1200 + v.length * 40, 3000);
+          setTimeout(() => {
+            hideTyping();
+            appendMessage(aiResponder(v), 'user');
+          }, delay);
+        } else {
+          setTimeout(() => appendMessage('Terima kasih, pesan Anda: "' + v + '"', 'user'), 700);
+        }
+      });
+      chatInput.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          sendBtn.click();
+        }
+      });
+
+      minBtn.addEventListener('click', ()=>{
+        chatCard.classList.toggle('minimized');
+        minBtn.textContent = chatCard.classList.contains('minimized') ? '+' : '–';
+      });
+
+      closeBtn.addEventListener('click', ()=>{
+        document.querySelector('.chat-wrapper').style.display = 'none';
+      });
+
+      appendMessage('Halo! Ada yang bisa saya bantu?', 'user');
+
+      function showTyping() {
+        if (document.getElementById('typing')) return;
+        const t = document.createElement('div');
+        t.id = 'typing';
+        t.className = 'msg user';
+        t.innerHTML = '<div><em>AI sedang mengetik...</em></div>';
+        chatBody.appendChild(t);
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }
+
+      function hideTyping() {
+        const t = document.getElementById('typing');
+        if (t) t.remove();
+      }
+
+      function aiResponder(text) {
+        const t = text.toLowerCase();
+        const greetings = ['halo','hi','hai','selamat','hello'];
+        if (greetings.some(g => t.includes(g))) return 'Halo! Senang bertemu Anda. Ada yang bisa saya bantu?';
+        if (t.includes('nama')) return 'Saya adalah Chatbot demo — saya tidak memiliki nama tetap.';
+        if (t.includes('waktu') || t.includes('jam')) return 'Sekarang pukul ' + nowTime() + '.';
+        if (t.includes('harga') || t.includes('biaya')) return 'Untuk informasi harga, sebutkan produk atau layanan yang Anda maksud.';
+        if (t.includes('terima kasih') || t.includes('thanks')) return 'Sama-sama! Senang bisa membantu.';
+        if (t.includes('help') || t.includes('bantu')) return 'Ceritakan kebutuhan Anda secara singkat, saya akan coba bantu.';
+
+        const fragments = [
+          `Menarik — Anda mengatakan: "${text}". Bisa jelaskan lebih lanjut?`,
+          `Saya mengerti bahwa: "${text}". Apa yang ingin Anda capai?`,
+          `Terima kasih atas informasinya. Mengenai "${text}", saya sarankan Anda mencoba langkah berikut...`
+        ];
+        return fragments[Math.floor(Math.random() * fragments.length)];
+      }
+    })();
+  </script>
+</body>
+</html>

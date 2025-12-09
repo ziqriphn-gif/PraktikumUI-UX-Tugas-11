@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Form Validasi — Pemesanan Tiket</title>
+  <style>
+    :root{ --bg:#071129; --card:#0f172a; --accent:#00f5d4; --muted:#94a3b8; --danger:#ef4444 }
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;background:linear-gradient(180deg,var(--bg),#081827);color:#e6eef8}
+    .wrap{max-width:740px;margin:40px auto;padding:20px}
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:12px;padding:20px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+    h1{margin:0 0 6px;font-size:18px}
+    p.lead{margin:0 0 16px;color:var(--muted);font-size:13px}
+
+    form .row{display:flex;gap:12px;flex-wrap:wrap}
+    label{display:block;margin:10px 0 6px;font-weight:600;color:#dbeafe}
+    input[type=text], input[type=number], select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit;box-sizing:border-box}
+
+    .col-2{flex:1 1 48%}
+    .col-1{flex:1 1 100%}
+
+    .error{color:var(--danger);font-size:13px;margin-top:6px;display:none}
+    .has-error input, .has-error select{border-color:var(--danger);box-shadow:0 6px 18px rgba(239,68,68,0.06)}
+
+    .actions{margin-top:14px;display:flex;gap:10px}
+    button{padding:10px 14px;border-radius:8px;border:0;background:linear-gradient(90deg,var(--accent),#7c3aed);color:#041022;font-weight:700;cursor:pointer}
+
+    .summary{margin-top:18px;padding:14px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border:1px solid rgba(255,255,255,0.03)}
+    .muted{color:var(--muted);font-size:13px}
+
+    @media (max-width:640px){ .col-2{flex-basis:100%} }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="panel">
+      <h1>Form Pemesanan Tiket</h1>
+      <p class="lead">Isi data pelanggan pada form. JavaScript akan memvalidasi input saat submit.</p>
+
+      <form id="orderForm" novalidate>
+        <div class="row">
+          <div class="col-1">
+            <label for="name">Nama Pelanggan</label>
+            <div id="nameWrap">
+              <input id="name" name="name" type="text" placeholder="Nama lengkap (maks 30 karakter)" maxlength="30" required />
+              <div class="error" id="errName"></div>
+            </div>
+          </div>
+
+          <div class="col-1">
+            <label for="email">Email</label>
+            <div id="emailWrap">
+              <input id="email" name="email" type="text" placeholder="email@contoh.com" required />
+              <div class="error" id="errEmail"></div>
+            </div>
+          </div>
+
+          <div class="col-2">
+            <label for="time">Jam Keberangkatan (HH.MM)</label>
+            <div id="timeWrap">
+              <input id="time" name="time" type="text" placeholder="08.30 (format 00.00 - 23.59)" required />
+              <div class="error" id="errTime"></div>
+            </div>
+          </div>
+
+          <div class="col-2">
+            <label for="destination">Tujuan Keberangkatan</label>
+            <div id="destWrap">
+              <select id="destination" name="destination" required>
+                <option value="">-- Pilih tujuan --</option>
+                <option value="Jakarta">Jakarta</option>
+                <option value="Bandung">Bandung</option>
+                <option value="Surabaya">Surabaya</option>
+                <option value="Yogyakarta">Yogyakarta</option>
+                <option value="Medan">Medan</option>
+              </select>
+              <div class="error" id="errDestination"></div>
+            </div>
+          </div>
+
+          <div class="col-2">
+            <label for="tickets">Jumlah Tiket (1 - 10)</label>
+            <div id="ticketsWrap">
+              <input id="tickets" name="tickets" type="number" placeholder="Jumlah" min="1" max="10" required />
+              <div class="error" id="errTickets"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit">Submit</button>
+          <button type="reset" id="btnReset">Reset</button>
+        </div>
+      </form>
+
+      <div id="result" class="summary" style="display:none"></div>
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      const form = document.getElementById('orderForm');
+      const nameEl = document.getElementById('name');
+      const emailEl = document.getElementById('email');
+      const timeEl = document.getElementById('time');
+      const destEl = document.getElementById('destination');
+      const ticketsEl = document.getElementById('tickets');
+
+      const errName = document.getElementById('errName');
+      const errEmail = document.getElementById('errEmail');
+      const errTime = document.getElementById('errTime');
+      const errDestination = document.getElementById('errDestination');
+      const errTickets = document.getElementById('errTickets');
+
+      const wrap = {
+        name: document.getElementById('nameWrap'),
+        email: document.getElementById('emailWrap'),
+        time: document.getElementById('timeWrap'),
+        dest: document.getElementById('destWrap'),
+        tickets: document.getElementById('ticketsWrap')
+      };
+
+      const result = document.getElementById('result');
+
+      function setError(elWrap, errEl, message){
+        if(message){
+          elWrap.classList.add('has-error');
+          errEl.textContent = message;
+          errEl.style.display = 'block';
+        } else {
+          elWrap.classList.remove('has-error');
+          errEl.textContent = '';
+          errEl.style.display = 'none';
+        }
+      }
+
+      function validateName(){
+        const v = nameEl.value.trim();
+        if(!v) return 'Nama pelanggan wajib diisi.';
+        if(v.length > 30) return 'Nama maksimal 30 karakter.';
+        return '';
+      }
+
+      function validateEmail(){
+        const v = emailEl.value.trim();
+        if(!v) return 'Email wajib diisi.';
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(!re.test(v)) return 'Format email tidak valid.';
+        return '';
+      }
+
+      function validateTime(){
+        const v = timeEl.value.trim();
+        if(!v) return 'Jam keberangkatan wajib diisi.';
+        const re = /^([01]\d|2[0-3])\.[0-5]\d$/;
+        if(!re.test(v)) return 'Format jam harus HH.MM (00.00 - 23.59).';
+        return '';
+      }
+
+      function validateDestination(){
+        const v = destEl.value;
+        if(!v) return 'Tujuan keberangkatan wajib dipilih.';
+        return '';
+      }
+
+      function validateTickets(){
+        const v = ticketsEl.value;
+        if(v === '' || v === null) return 'Jumlah tiket wajib diisi.';
+        const n = Number(v);
+        if(!Number.isInteger(n)) return 'Jumlah tiket harus bilangan bulat.';
+        if(n < 1 || n > 10) return 'Jumlah tiket harus antara 1 sampai 10.';
+        return '';
+      }
+
+      function validateAll(){
+        const eName = validateName();
+        const eEmail = validateEmail();
+        const eTime = validateTime();
+        const eDest = validateDestination();
+        const eTickets = validateTickets();
+
+        setError(wrap.name, errName, eName);
+        setError(wrap.email, errEmail, eEmail);
+        setError(wrap.time, errTime, eTime);
+        setError(wrap.dest, errDestination, eDest);
+        setError(wrap.tickets, errTickets, eTickets);
+
+        return !(eName || eEmail || eTime || eDest || eTickets);
+      }
+
+      nameEl.addEventListener('input', ()=> setError(wrap.name, errName, validateName()));
+      emailEl.addEventListener('input', ()=> setError(wrap.email, errEmail, validateEmail()));
+      timeEl.addEventListener('input', ()=> setError(wrap.time, errTime, validateTime()));
+      destEl.addEventListener('change', ()=> setError(wrap.dest, errDestination, validateDestination()));
+      ticketsEl.addEventListener('input', ()=> setError(wrap.tickets, errTickets, validateTickets()));
+
+      form.addEventListener('submit', function(ev){
+        ev.preventDefault();
+        result.style.display = 'none';
+
+        const ok = validateAll();
+        if(!ok){
+          const firstErr = document.querySelector('.has-error input, .has-error select');
+          if(firstErr) firstErr.focus();
+          return;
+        }
+
+        const data = {
+          nama: nameEl.value.trim(),
+          email: emailEl.value.trim(),
+          jam: timeEl.value.trim(),
+          tujuan: destEl.value,
+          tiket: ticketsEl.value
+        };
+
+        result.innerHTML = `
+          <strong>Data Pemesanan:</strong>
+          <div class="muted" style="margin-top:8px">
+            Nama Pelanggan: <strong>${escapeHtml(data.nama)}</strong><br/>
+            Email: <strong>${escapeHtml(data.email)}</strong><br/>
+            Jam Keberangkatan: <strong>${escapeHtml(data.jam)}</strong><br/>
+            Tujuan: <strong>${escapeHtml(data.tujuan)}</strong><br/>
+            Jumlah Tiket: <strong>${escapeHtml(data.tiket)}</strong>
+          </div>
+        `;
+        result.style.display = 'block';
+        result.scrollIntoView({behavior:'smooth'});
+        alert('Pemesanan berhasil: ' + data.nama + ' — ' + data.tiket + ' tiket');
+      });
+
+      document.getElementById('btnReset').addEventListener('click', ()=>{
+        setError(wrap.name, errName, '');
+        setError(wrap.email, errEmail, '');
+        setError(wrap.time, errTime, '');
+        setError(wrap.dest, errDestination, '');
+        setError(wrap.tickets, errTickets, '');
+        result.style.display = 'none';
+      });
+
+      function escapeHtml(s){
+        return String(s).replace(/[&<>\"]/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]||m); });
+      }
+    })();
+  </script>
+</body>
+</html>

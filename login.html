@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Login</title>
+    <style>
+      :root {
+        --bg-1: #0f172a;
+        --bg-2: #071129;
+        --accent: #00f5d4;
+        --accent-2: #7c3aed;
+        --muted: #94a3b8;
+      }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+        background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+        color: #e6eef8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 420px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+        padding: 22px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.04);
+        box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      }
+
+      h1 {
+        margin: 0 0 8px 0;
+        font-size: 20px;
+      }
+
+      p.note {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 0 0 14px 0;
+      }
+
+      label {
+        display: block;
+        margin: 10px 0 6px 0;
+        font-weight: 600;
+        color: #dbeafe;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.04);
+        background: transparent;
+        color: inherit;
+        box-sizing: border-box;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 0;
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .btn.primary {
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        color: #041022;
+      }
+
+      .btn.ghost {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.06);
+        color: var(--muted);
+      }
+
+      /* Message box styles */
+      .message {
+        display: none;
+        margin-top: 14px;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+
+      .message-success {
+        background: rgba(16,185,129,0.08);
+        border: 1px solid rgba(16,185,129,0.18);
+        color: #7ef6d8;
+      }
+
+      .message-error {
+        background: rgba(239,68,68,0.06);
+        border: 1px solid rgba(239,68,68,0.16);
+        color: #ff9b9b;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="card">
+      <h1>Login</h1>
+      <p class="note">Masukkan username &amp; password</p>
+
+      <form onsubmit="return handleLogin(event)">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" placeholder="username" onchange="/* onchange kept for requirement */" />
+
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" placeholder="password" onchange="/* onchange kept for requirement */" />
+
+        <div class="actions">
+          <button type="submit" class="btn primary">Login</button>
+          <button type="button" class="btn ghost" onclick="document.getElementById('username').value=''; document.getElementById('password').value='';">Bersihkan</button>
+        </div>
+      </form>
+      
+      <div id="loginMessage" class="message" aria-live="polite"></div>
+    </main>
+
+    <script src="otentikasi.js"></script>
+  </body>
+</html>
